@@ -3,8 +3,13 @@ using XC.OC.Migration.Core.Application.Features.Users.Queries.GetUsersList;
 using XC.OC.Migration.Users.Api.Models;
 using XC.OC.Migration.Core.Application;
 using XC.OC.Migration.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http.HttpResults;
+using XC.OC.Migration.Core.Application.Models;
+using XC.OC.Migration.Core.Application.Features.OrderCloud.Commands.DeleteUsers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddAzureQueueClient("queueConnection");
 
 builder.AddServiceDefaults();
 
@@ -35,5 +40,13 @@ usersApis.MapPost("/", async ([FromBody]GetUsersListRequest request,
     request.PageSize, request.ApplicationName))
     .WithName("GetXCUsers")
     .WithOpenApi();
+
+
+var ocUsers = app.MapGroup("oc-users");
+ocUsers.MapPost("/delete", async ([FromBody]OrderCloudDeleteMigratedUsersRequest message, IDeleteMigratedUsersCommand request) =>
+{
+    await request.Execute(message);
+    return Results.Accepted();
+});
 
 app.Run();

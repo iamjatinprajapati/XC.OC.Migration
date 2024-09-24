@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Reflection;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -14,6 +17,81 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
+    //Added to support functions
+    public static IHostBuilder AddServiceDefaults(this IHostBuilder builder)
+    {
+        //open telemetry
+        builder.ConfigureLogging(x =>
+        {
+            x.AddOpenTelemetry(logging =>
+            {
+                logging.IncludeFormattedMessage = true;
+                logging.IncludeScopes = true;
+            });
+        });
+        builder.ConfigureServices((context, services) =>
+        {
+            services.AddOpenTelemetry().WithMetrics(metrics =>
+            {
+                metrics.AddRuntimeInstrumentation()
+                .AddBuiltInMeters();
+            })
+            .WithTracing(tracing => {
+                var sourceName = Assembly.GetEntryAssembly()!.GetName().Name!;
+                tracing
+                .AddSource(sourceName)
+                .SetSampler(new AlwaysOnSampler())
+                .AddAspNetCoreInstrumentation()
+                // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
+                //.AddGrpcClientInstrumentation()
+                .AddHttpClientInstrumentation();
+             });
+            services.AddOpenTelemetryExporters(context.Configuration);
+        });
+
+        builder.ConfigureServices((context, services) =>
+        {
+            services.AddServiceDiscovery();
+            services.ConfigureHttpClientDefaults(http =>
+            {
+                http.AddStandardResilienceHandler();
+                //http.UseServiceDiscovery();
+            });
+        });
+
+        return builder;
+    }
+
+    //Added to support functions
+    private static IServiceCollection AddOpenTelemetryExporters(this IServiceCollection services, IConfiguration configuration)
+    {
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        if (useOtlpExporter)
+        {
+            services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
+            services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
+            services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
+        }
+
+        // Uncomment the following lines to enable the Prometheus exporter (requires the OpenTelemetry.Exporter.Prometheus.AspNetCore package)
+        // builder.Services.AddOpenTelemetry()
+        //    .WithMetrics(metrics => metrics.AddPrometheusExporter());
+
+        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.Exporter package)
+        // builder.Services.AddOpenTelemetry()
+        //    .UseAzureMonitor();
+
+        return services;
+    }
+
+    //Added to support functions
+    private static MeterProviderBuilder AddBuiltInMeters(this MeterProviderBuilder meterProviderBuilder) =>
+        meterProviderBuilder.AddMeter(
+            "Microsoft.AspNetCore.Hosting",
+            "Microsoft.AspNetCore.Server.Kestrel",
+            "System.Net.Http");
+
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
         builder.ConfigureOpenTelemetry();

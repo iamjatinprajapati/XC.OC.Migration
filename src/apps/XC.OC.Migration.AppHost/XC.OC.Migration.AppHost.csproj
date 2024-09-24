@@ -11,10 +11,12 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="8.2.0" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="8.2.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\functions\XC.OC.Migration.Function.DeleteMigratedOCUsers\XC.OC.Migration.Function.DeleteMigratedOCUsers.csproj" />
     <ProjectReference Include="..\XC.OC.Migration.ApiService\XC.OC.Migration.ApiService.csproj" />
     <ProjectReference Include="..\XC.OC.Migration.Orders.Api\XC.OC.Migration.Orders.Api.csproj" />
     <ProjectReference Include="..\XC.OC.Migration.Users.Api\XC.OC.Migration.Users.Api.csproj" />

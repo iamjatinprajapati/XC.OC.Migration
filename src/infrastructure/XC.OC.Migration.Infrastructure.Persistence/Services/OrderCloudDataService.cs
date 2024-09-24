@@ -26,7 +26,7 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
 
         Task<TokenResponse> AuthenticateUsingClientCredentialsAsync();
 
-        Task<PagedResults<User>> ListUsers(string accessToken);
+        Task<PagedResults<User>> ListUsers(string accessToken, string sortBy = "", string filter = "");
     }
 
     public class OrderCloudDataService(IRESTService restService, ILogger<OrderCloudDataService> logger, IOptions<OrderCloudSettings> options) : 
@@ -66,12 +66,17 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
             OAuthTokenResponse? response = await restService.PostUrlEncodedAsync<OAuthTokenResponse>(_orderCloudSettings.BaseUrl,
                 "oauth/token", body: request);
 
+            if(response == null || string.IsNullOrEmpty(response.access_token))
+            {
+                throw new UnauthorizedAccessException();
+            }
+
             return new TokenResponse
             {
-                AccessToken = response?.access_token,
+                AccessToken = response?.access_token!,
                 // a bit arbitrary, but trim 30 minutes off the expiration to allow for latency
                 ExpiresUtc = DateTime.UtcNow + TimeSpan.FromSeconds(response?.expires_in ?? 0) - TimeSpan.FromSeconds(30),
-                RefreshToken = response?.refresh_token
+                RefreshToken = response?.refresh_token!
             };
         }
 
@@ -80,10 +85,30 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
             return AuthenticateAsync(_orderCloudSettings.MiddlewareClientId, _orderCloudSettings.MiddlewareClientSecret);
         }
 
-        public async Task<PagedResults<User>> ListUsers(string accessToken)
+        public async Task<PagedResults<User>> ListUsers(string accessToken, string sortBy = "", string filter = "")
         {
-            var response = await restService.GetAsync<PagedResults<User>>(
-                _orderCloudSettings.BaseUrl, $"v1/buyers/{_orderCloudSettings.BuyerId}/users", accessToken: accessToken);
+            var endpoint = $"v1/buyers/{_orderCloudSettings.BuyerId}/users";
+            bool hasQueryString = false;
+            if(!string.IsNullOrEmpty(sortBy))
+            {
+                endpoint = $"{endpoint}?{sortBy}";
+                hasQueryString = true ;
+            }
+            if(!string.IsNullOrEmpty(filter))
+            {
+                if(!hasQueryString)
+                {
+                    endpoint = $"{endpoint}?";
+                    hasQueryString = true;
+                }
+                else
+                {
+                    endpoint = $"{endpoint}&{filter}";
+                }
+            }
+
+            PagedResults<User> response = await restService.GetAsync<PagedResults<User>>(
+                _orderCloudSettings.BaseUrl, endpoint, accessToken: accessToken);
             return response;
         }
     }

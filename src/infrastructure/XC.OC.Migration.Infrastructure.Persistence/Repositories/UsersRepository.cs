@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XC.OC.Migration.Core.Application.Abstractions;
+using XC.OC.Migration.Core.Application.Models;
 using XC.OC.Migration.Core.Domain.Model.ExperienceCommerce;
 using XC.OC.Migration.Core.Domain.Model.OrderCloud;
 using XC.OC.Migration.Infrastructure.Persistence.Services;
@@ -27,14 +28,13 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResults<User>> GetOrderCloudUsers()
         {
-            var authToken = await _orderCloudDataService.AuthenticateUsingClientCredentialsAsync();
-            if(authToken != null)
+            Models.TokenResponse authToken = await _orderCloudDataService.AuthenticateUsingClientCredentialsAsync();
+            if (authToken == null)
             {
-                _logger.LogInformation("Access token: {accessToken}", authToken.AccessToken);
-                var data = await _orderCloudDataService.ListUsers(authToken.AccessToken);
-                return data;
+                throw new UnauthorizedAccessException();
             }
-            return PagedResults<User>.Empty;
+            var data = await _orderCloudDataService.ListUsers(authToken.AccessToken);
+            return data;
         }
 
         public async Task<long> GetUsersCount(string userNamePrefix, string startDate, string endDate, int pageIndex = 1, int pageSize = 50, string applicationName = "sitecore")
@@ -45,6 +45,16 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<Core.Domain.Model.ExperienceCommerce.User>> GetUsers(string userNamePrefix, string startDate, string endDate, int pageIndex, int pageSize, string applicationName)
         {
             return await _sqlDatabaseService.GetUsers(userNamePrefix, startDate, endDate, pageIndex, pageSize, applicationName);
+        }
+
+        public async Task DeleteOrderCloudMigratedUsers(OrderCloudDeleteMigratedUsersRequest request)
+        {
+            Models.TokenResponse authToken = await _orderCloudDataService.AuthenticateUsingClientCredentialsAsync();
+            if(authToken == null)
+            {
+                throw new UnauthorizedAccessException();
+            }
+            var data = await _orderCloudDataService.ListUsers(authToken.AccessToken);
         }
     }
 }

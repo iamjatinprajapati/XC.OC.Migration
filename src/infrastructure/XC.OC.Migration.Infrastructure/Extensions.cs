@@ -11,6 +11,7 @@ namespace XC.OC.Migration.Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IFlurlClientCache>(sp => new FlurlClientCache());
+            services.AddSingleton<IMessageQueueService, MessageQueueService>();
             services.AddScoped<IRESTService, RESTService>();
             return services;
         }
