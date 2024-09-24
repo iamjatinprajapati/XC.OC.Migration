@@ -1,0 +1,6 @@
+@XC.OC.Migration.Orders.Api_HostAddress = http://localhost:5022
+
+GET {{XC.OC.Migration.Orders.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

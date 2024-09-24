@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>35e47240-8961-4157-ae4d-da31d5c903a1</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="8.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XC.OC.Migration.ApiService\XC.OC.Migration.ApiService.csproj" />
+    <ProjectReference Include="..\XC.OC.Migration.Orders.Api\XC.OC.Migration.Orders.Api.csproj" />
+    <ProjectReference Include="..\XC.OC.Migration.Users.Api\XC.OC.Migration.Users.Api.csproj" />
+    <ProjectReference Include="..\XC.OC.Migration.Web\XC.OC.Migration.Web.csproj" />
+  </ItemGroup>
+
+</Project>
