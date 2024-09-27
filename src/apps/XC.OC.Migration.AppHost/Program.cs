@@ -1,5 +1,6 @@
 using Aspire.Hosting;
 using Microsoft.Extensions.Hosting;
+using XC.OC.Migration.AppHost;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
@@ -36,13 +37,7 @@ builder.AddProject<Projects.XC_OC_Migration_Users_Api>("xc-oc-migration-users-ap
         .WithReference(queues);
 //.WithReference(ordersdb);
 
-builder.AddProject<Projects.XC_OC_Migration_Function_DeleteMigratedOCUsers>("xc-oc-migration-function-deletemigratedocusers")
-    .WithReference(queues)
-    .WithEnvironment("QueueConnectionString", "queueConnection")
-    .WithEnvironment("DeleteOCUsersQueue", "delete-oc-users");
-
-//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedOCUsers>("xc-oc-migration-function-deletemigratedocusers", 50001, 50002)
-//    .WithReference(queues);
-//.WithReference(ordersdb);
+builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>("xc-oc-migration-function-deletemigratedocusers")
+    .WithReference(queues);
 
 builder.Build().Run();

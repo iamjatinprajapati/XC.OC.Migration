@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "XC.OC.Migration.Function.DeleteMigratedOCUsers": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7256",
-      "launchBrowser": false
-    }
-  }
-}

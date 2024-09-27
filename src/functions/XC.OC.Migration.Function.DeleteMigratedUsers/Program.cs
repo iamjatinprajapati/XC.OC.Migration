@@ -5,10 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 var host = new HostBuilder()
     .AddServiceDefaults()
     .ConfigureFunctionsWebApplication()
-    .ConfigureServices(services => {
+    .ConfigureServices(services =>
+    {
         //services.AddApplicationInsightsTelemetryWorkerService();
         //services.ConfigureFunctionsApplicationInsights();
-    })    
+    })
     .Build();
 
 host.Run();
