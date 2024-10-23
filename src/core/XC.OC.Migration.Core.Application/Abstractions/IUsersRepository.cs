@@ -19,6 +19,6 @@ namespace XC.OC.Migration.Core.Application.Abstractions
 
         Task<PagedResults<Domain.Model.OrderCloud.User>> GetOrderCloudUsers();
 
-        Task DeleteOrderCloudMigratedUsers(OrderCloudDeleteMigratedUsersRequest request);
+        Task DeleteOrderCloudMigratedUsers(int iterations);
     }
 }

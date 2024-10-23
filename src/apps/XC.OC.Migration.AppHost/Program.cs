@@ -38,6 +38,7 @@ builder.AddProject<Projects.XC_OC_Migration_Users_Api>("xc-oc-migration-users-ap
 //.WithReference(ordersdb);
 
 builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>("xc-oc-migration-function-deletemigratedocusers")
-    .WithReference(queues);
+    .WithReference(queues)
+    .WithEnvironment("queueConnectionString", "queueConnection");
 
 builder.Build().Run();

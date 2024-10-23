@@ -1,12 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XC.OC.Migration.Core.Application.Abstractions;
-using XC.OC.Migration.Core.Application.Models;
-using XC.OC.Migration.Core.Domain.Model.ExperienceCommerce;
 using XC.OC.Migration.Core.Domain.Model.OrderCloud;
 using XC.OC.Migration.Infrastructure.Persistence.Services;
 using User = XC.OC.Migration.Core.Domain.Model.OrderCloud.User;
@@ -47,14 +40,25 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Repositories
             return await _sqlDatabaseService.GetUsers(userNamePrefix, startDate, endDate, pageIndex, pageSize, applicationName);
         }
 
-        public async Task DeleteOrderCloudMigratedUsers(OrderCloudDeleteMigratedUsersRequest request)
+        public async Task DeleteOrderCloudMigratedUsers(int iterations)
         {
             Models.TokenResponse authToken = await _orderCloudDataService.AuthenticateUsingClientCredentialsAsync();
             if(authToken == null)
             {
                 throw new UnauthorizedAccessException();
             }
-            var data = await _orderCloudDataService.ListUsers(authToken.AccessToken);
+
+            for (int iteration = 0; iteration < iterations; iteration++)
+            {
+                var data = await _orderCloudDataService.ListUsers(authToken.AccessToken);
+                if (data.Meta.TotalCount > 0)
+                {
+                    foreach (var user in data.Items)
+                    {
+                        await _orderCloudDataService.DeleteUser(accessToken: authToken.AccessToken, user.ID);
+                    }
+                }
+            }
         }
     }
 }

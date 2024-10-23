@@ -27,6 +27,8 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
         Task<TokenResponse> AuthenticateUsingClientCredentialsAsync();
 
         Task<PagedResults<User>> ListUsers(string accessToken, string sortBy = "", string filter = "");
+        
+        Task DeleteUser(string accessToken, string id);
     }
 
     public class OrderCloudDataService(IRESTService restService, ILogger<OrderCloudDataService> logger, IOptions<OrderCloudSettings> options) : 
@@ -110,6 +112,12 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
             PagedResults<User> response = await restService.GetAsync<PagedResults<User>>(
                 _orderCloudSettings.BaseUrl, endpoint, accessToken: accessToken);
             return response;
+        }
+
+        public async Task DeleteUser(string accessToken, string id)
+        {
+            var endpoint = $"v1/buyers/{_orderCloudSettings.BuyerId}/users/{id}";
+            await restService.DeleteAsync(_orderCloudSettings.BaseUrl, endpoint, accessToken: accessToken);
         }
     }
 }
