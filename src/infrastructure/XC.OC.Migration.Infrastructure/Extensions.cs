@@ -13,6 +13,7 @@ namespace XC.OC.Migration.Infrastructure
             services.AddSingleton<IFlurlClientCache>(sp => new FlurlClientCache());
             services.AddSingleton<IMessageQueueService, MessageQueueService>();
             services.AddScoped<IRESTService, RestService>();
+            services.AddSingleton<IFileStorageService, FileStorageService>();
             return services;
         }
     }

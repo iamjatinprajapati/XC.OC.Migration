@@ -37,8 +37,14 @@ builder.AddProject<Projects.XC_OC_Migration_Users_Api>("xc-oc-migration-users-ap
         .WithReference(queues);
 //.WithReference(ordersdb);
 
-builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>("xc-oc-migration-function-deletemigratedocusers")
+builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>(
+        "xc-oc-migration-function-delete-migrated-oc-users")
     .WithReference(queues)
     .WithEnvironment("queueConnectionString", "queueConnection");
+
+builder.AddAzureFunction<Projects.XC_OC_Migration_Function_FindDuplicateUsers>(
+    "xc-oc-migration-function-find-duplicate-users")
+    .WithReference(queues)
+    .WithEnvironment("queueConnectionString", "queueConnection");;
 
 builder.Build().Run();
