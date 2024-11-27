@@ -13,13 +13,13 @@ namespace XC.OC.Migration.Infrastructure.Services
 {
     public class MessageQueueService(QueueServiceClient client, ILogger<MessageQueueService> logger, IConfiguration configuration) : IMessageQueueService
     {
-        public async Task SendMessageAsync(IQueueMessage message)
+        public async Task SendMessageAsync<T>(IQueueMessage<T> message) where T : class
         {
-            var serializedMessage = JsonConvert.SerializeObject(message);
-            if(logger.IsEnabled(LogLevel.Debug))
+            var serializedMessage = JsonConvert.SerializeObject(message.Message);
+            if (logger.IsEnabled(LogLevel.Debug))
                 logger.LogDebug("Sending message: {serializedMessage}", serializedMessage);
 
-            QueueClient queueClient = client.GetQueueClient(configuration.GetValue<string>("DeleteMigratedUsersQueueName"));
+            QueueClient queueClient = client.GetQueueClient(message.QueueName);
             CancellationToken cancellationToken = new CancellationToken();
             await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
             var base64Payload = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(serializedMessage));

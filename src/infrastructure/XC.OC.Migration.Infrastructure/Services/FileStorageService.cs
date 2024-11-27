@@ -4,7 +4,7 @@ using XC.OC.Migration.Core.Application.Abstractions.Infrastructure;
 
 namespace XC.OC.Migration.Infrastructure.Services;
 
-public class FileStorageService(IConfiguration configuration, ILogger<FileStorageService> logger) : IFileStorageService
+public class FileStorageService(IConfiguration configuration, ILogger<FileStorageService> logger, IAzureStorageService azureStorageService) : IFileStorageService
 {
     public List<string> GetFilesAsync(string folderName, string path)
     {
@@ -16,9 +16,10 @@ public class FileStorageService(IConfiguration configuration, ILogger<FileStorag
         throw new NotImplementedException();
     }
 
-    public Task<bool> SaveFileAsync(string content, string filePath)
+    public async Task<bool> SaveFileAsync(string content, string filePath)
     {
-        throw new NotImplementedException();
+        await azureStorageService.UploadAsync(content, filePath);
+        return true;
     }
 
     public Task MoveFileAsync(string sourceFileName, string destinationFileName)

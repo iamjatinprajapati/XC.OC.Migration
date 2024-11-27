@@ -8,6 +8,6 @@ namespace XC.OC.Migration.Core.Application.Abstractions.Infrastructure
 {
     public interface IMessageQueueService
     {
-        Task SendMessageAsync(IQueueMessage message);
+        Task SendMessageAsync<T>(IQueueMessage<T> message) where T : class;
     }
 }

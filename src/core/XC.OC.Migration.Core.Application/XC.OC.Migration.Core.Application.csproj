@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Features\OrderCloud\Commands\" />
     <Folder Include="Features\Orders\" />
   </ItemGroup>
 

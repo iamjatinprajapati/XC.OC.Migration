@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace XC.OC.Migration.Core.Application.Abstractions.Infrastructure
 {
-    public interface IQueueMessage
+    public interface IQueueMessage<T> where T : class
     {
+        string QueueName { get; }
+
+        T Message { get; set; }
     }
 }

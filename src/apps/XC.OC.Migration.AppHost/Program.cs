@@ -23,6 +23,7 @@ if(builder.Environment.IsDevelopment())
 }
 
 IResourceBuilder<Aspire.Hosting.Azure.AzureQueueStorageResource> queues = storage.AddQueues("queueConnection");
+var blobs = storage.AddBlobs("blobs");
 
 IResourceBuilder<ProjectResource> apiService = builder.AddProject<Projects.XC_OC_Migration_ApiService>("apiservice");
 
@@ -34,17 +35,37 @@ builder.AddProject<Projects.XC_OC_Migration_Orders_Api>("xc-oc-migration-orders-
         //.WithReference(ordersdb);
 
 builder.AddProject<Projects.XC_OC_Migration_Users_Api>("xc-oc-migration-users-api")
-        .WithReference(queues);
+        .WithReference(queues)
+        .WithReference(blobs);
 //.WithReference(ordersdb);
 
-builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>(
-        "xc-oc-migration-function-delete-migrated-oc-users")
+builder.AddProject<Projects.XC_OC_Migration_Function_ExportUsers>("xc-oc-migration-function-exportusers")
     .WithReference(queues)
-    .WithEnvironment("queueConnectionString", "queueConnection");
+    .WithEnvironment("queueConnectionString", "queueConnection")
+    .WithReference(blobs)
+    .WithEnvironment("AzureStorage:ContainerName", "xc-users");
 
-builder.AddAzureFunction<Projects.XC_OC_Migration_Function_FindDuplicateUsers>(
-    "xc-oc-migration-function-find-duplicate-users")
-    .WithReference(queues)
-    .WithEnvironment("queueConnectionString", "queueConnection");;
+//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>(
+//        "xc-oc-migration-function-delete-migrated-oc-users")
+//    .WithReference(queues)
+//    .WithEnvironment("queueConnectionString", "queueConnection");
+
+//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_FindDuplicateUsers>(
+//    "xc-oc-migration-function-find-duplicate-users")
+//    .WithReference(queues)
+//    .WithEnvironment("queueConnectionString", "queueConnection");
+
+
+//.WithReference(ordersdb);
+
+//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>(
+//        "xc-oc-migration-function-delete-migrated-oc-users")
+//    .WithReference(queues)
+//    .WithEnvironment("queueConnectionString", "queueConnection");
+
+//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_FindDuplicateUsers>(
+//    "xc-oc-migration-function-find-duplicate-users")
+//    .WithReference(queues)
+//    .WithEnvironment("queueConnectionString", "queueConnection");
 
 builder.Build().Run();

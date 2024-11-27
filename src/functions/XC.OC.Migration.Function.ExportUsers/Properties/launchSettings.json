@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "XC.OC.Migration.Function.ExportUsers": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7275",
+      "launchBrowser": false
+    }
+  }
+}
