@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
+//using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace XC.OC.Migration.Core.Domain.Model.ExperienceCommerce
@@ -53,6 +54,21 @@ namespace XC.OC.Migration.Core.Domain.Model.ExperienceCommerce
         public string ZipCode { get; set; }
 
         public ExtendedProperties ExtendedProperties { get; set; }
+
+        private string _customerId = string.Empty;
+        public string CustomerId
+        {
+            get
+            {
+                if(ExtendedProperties != null && ExtendedProperties.Customers != null && ExtendedProperties.Customers.Any())
+                {
+                    return ExtendedProperties.Customers.First();
+                }
+                return _customerId;
+            }
+        }
+
+        public CustomerEntity? Customer { get; set; }
     }
 
     public class ProfileProperty

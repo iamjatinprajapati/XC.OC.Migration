@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -12,7 +13,7 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
 {
     public class SQLDatabaseService(IConfiguration configuration, ILogger<SQLDatabaseService> logger) : ISQLDatabaseService
     {
-        public IDbCommand CreateCommand(IDbConnection connection, string query, 
+        public IDbCommand CreateCommand(IDbConnection connection, string query,
             System.Data.CommandType commandType = System.Data.CommandType.Text, params IDbDataParameter[]? parameters)
         {
             if (logger.IsEnabled(LogLevel.Debug))
@@ -59,9 +60,9 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
             return Task.Run(() =>
             {
                 var users = new List<User>();
-                using(IDbConnection connection = GetConnection("CoreDatabase"))
+                using (IDbConnection connection = GetConnection("CoreDatabase"))
                 {
-                    using(IDbCommand command = CreateCommand(connection, "dbo.Migration_aspnet_Membership_GetAllUsers",
+                    using (IDbCommand command = CreateCommand(connection, "dbo.Migration_aspnet_Membership_GetAllUsers",
                         CommandType.StoredProcedure, new SqlParameter("@ApplicationName", applicationName),
                         new SqlParameter("@UserNamePrefix", userNamePrefix),
                         new SqlParameter("@StartDate", startDate),
@@ -77,7 +78,8 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
                     {
                         connection.Open();
                         IDataReader reader = command.ExecuteReader();
-                        while (reader.Read()) {
+                        while (reader.Read())
+                        {
                             var record = (IDataRecord)reader;
                             var user = new User()
                             {
@@ -105,14 +107,14 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
         {
             try
             {
-                for(int index = 0; index < user.PropertyNames.Length / 4; ++index)
+                for (int index = 0; index < user.PropertyNames.Length / 4; ++index)
                 {
                     string name = user.PropertyNames[index * 4];
                     int num = int.Parse(user.PropertyNames[index * 4 + 2], CultureInfo.InvariantCulture);
                     int length = int.Parse(user.PropertyNames[index * 4 + 3], CultureInfo.InvariantCulture);
                     if (user.PropertyNames[index * 4 + 1] == "S" && num >= 0 && length > 0 && user.PropertyValuesString.Length >= num + length)
                     {
-                        switch(name.ToLower())
+                        switch (name.ToLower())
                         {
                             case "fullname":
                                 user.FullName = user.PropertyValuesString.Substring(num, length);
@@ -126,22 +128,22 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
                         byte[] destintation = new byte[length];
                         Buffer.BlockCopy(user.PropertyValuesBinary, num, destintation, 0, length);
                         var serialized = (object)destintation;
-                        if(!(serialized is string))
+                        if (!(serialized is string))
                         {
-                            using(var ms = new MemoryStream((byte[])serialized))
+                            using (var ms = new MemoryStream((byte[])serialized))
                             {
                                 try
                                 {
 #pragma warning disable SYSLIB0011 // Type or member is obsolete
                                     Dictionary<string, string>? props = (Dictionary<string, string>)new BinaryFormatter().Deserialize(ms);
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
-                                    logger.LogInformation(JsonSerializer.Serialize(props));
-                                    foreach(var key in props.Keys)
+                                    logger.LogInformation(System.Text.Json.JsonSerializer.Serialize(props));
+                                    foreach (var key in props.Keys)
                                     {
-                                        if(!key.Equals("__serialization", StringComparison.OrdinalIgnoreCase))
+                                        if (!key.Equals("__serialization", StringComparison.OrdinalIgnoreCase))
                                         {
                                             logger.LogInformation("Serialized prop name: {key}", key);
-                                            switch(key.ToLower())
+                                            switch (key.ToLower())
                                             {
                                                 case "city":
                                                     user.City = props[key];
@@ -167,7 +169,7 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
                                             }
                                             continue;
                                         }
-                                        user.ExtendedProperties = JsonSerializer.Deserialize<ExtendedProperties>(props[key]);                                        
+                                        user.ExtendedProperties = System.Text.Json.JsonSerializer.Deserialize<ExtendedProperties>(props[key]);
                                     }
                                 }
                                 catch (Exception ex)
@@ -181,8 +183,7 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
             }
             catch (Exception ex)
             {
-
-                throw;
+                logger.LogError(ex.Message, ex);
             }
         }
 
@@ -212,6 +213,36 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Services
                         return totalRecords;
                     }
                 }
+            });
+        }
+
+        public Task<CustomerEntity?> GetXCEntity(string customerId)
+        {
+            return Task.Run(() =>
+            {
+                CustomerEntity customer = null;
+                using (IDbConnection connection = GetConnection("XCSharedDatabase"))
+                {
+                    using (IDbCommand command = CreateCommand(connection, "SELECT ces.[UniqueId] ,ces.[Id] ,ce.[Entity], ces.[ConcurrencyVersion], " +
+                        "ces.[EntityVersion], ces.[Published] FROM [sitecore_commerce_storage].[CustomersEntities] ces " +
+                        "JOIN [sitecore_commerce_storage].[CustomersEntity] ce on ce.UniqueId = ces.UniqueId WHERE [Id] = @Id", CommandType.Text,
+                        new SqlParameter("@id", customerId)))
+                    {
+                        connection.Open();
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            customer = new CustomerEntity();
+                            IDataRecord record = (IDataRecord)reader;
+                            string customerEntity = record.GetString(record.GetOrdinal("Entity"));
+                            if (!String.IsNullOrEmpty(customerEntity))
+                            {
+                                customer.Entity = JsonConvert.DeserializeObject(customerEntity.Replace("$type", "type").Replace("$values", "values"));
+                            }
+                        }
+                    }
+                }
+                return customer;
             });
         }
     }

@@ -18,18 +18,22 @@ if(builder.Environment.IsDevelopment())
 {
     storage.RunAsEmulator(configuration =>
     {
-        configuration.WithBlobPort(60001).WithQueuePort(60002).WithTablePort(60003);
+        //configuration.WithBlobPort(60001).WithQueuePort(60002).WithTablePort(60003);
+        configuration.WithArgs("azurite", "-l", "/data", "--blobHost", "0.0.0.0", "--queueHost", "0.0.0.0", "--tableHost", "0.0.0.0", "--skipApiVersionCheck");
     });
+    //.WithAnnotation(new ContainerImageAnnotation
+    //{
+    //    Registry = "mcr.microsoft.com",
+    //    Image = "azure-storage/azurite",
+    //    Tag = "3.30.0"
+    //}).WithParameter("skipApiVersionCheck");
 }
 
 IResourceBuilder<Aspire.Hosting.Azure.AzureQueueStorageResource> queues = storage.AddQueues("queueConnection");
 var blobs = storage.AddBlobs("blobs");
 
-IResourceBuilder<ProjectResource> apiService = builder.AddProject<Projects.XC_OC_Migration_ApiService>("apiservice");
-
 builder.AddProject<Projects.XC_OC_Migration_Web>("webfrontend")
-    .WithExternalHttpEndpoints()
-    .WithReference(apiService);
+    .WithExternalHttpEndpoints();
 
 builder.AddProject<Projects.XC_OC_Migration_Orders_Api>("xc-oc-migration-orders-api");
         //.WithReference(ordersdb);

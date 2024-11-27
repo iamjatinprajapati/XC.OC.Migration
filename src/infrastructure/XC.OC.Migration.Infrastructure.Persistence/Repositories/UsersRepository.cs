@@ -60,5 +60,10 @@ namespace XC.OC.Migration.Infrastructure.Persistence.Repositories
                 }
             }
         }
+
+        public Task<Core.Domain.Model.ExperienceCommerce.CustomerEntity?> GetXCEntity(string customerId)
+        {
+            return _sqlDatabaseService.GetXCEntity(customerId);
+        }
     }
 }

@@ -24,5 +24,7 @@ namespace XC.OC.Migration.Core.Application.Abstractions
 
         Task<IEnumerable<User>> GetUsers(string userNamePrefix, string startDate, string endDate, int pageIndex,
             int pageSize, string applicationName);
+
+        Task<CustomerEntity?> GetXCEntity(string customerId);
     }
 }
