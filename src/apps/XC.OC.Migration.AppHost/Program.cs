@@ -49,27 +49,4 @@ builder.AddProject<Projects.XC_OC_Migration_Function_ExportUsers>("xc-oc-migrati
     .WithReference(blobs)
     .WithEnvironment("AzureStorage:ContainerName", "xc-users");
 
-//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>(
-//        "xc-oc-migration-function-delete-migrated-oc-users")
-//    .WithReference(queues)
-//    .WithEnvironment("queueConnectionString", "queueConnection");
-
-//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_FindDuplicateUsers>(
-//    "xc-oc-migration-function-find-duplicate-users")
-//    .WithReference(queues)
-//    .WithEnvironment("queueConnectionString", "queueConnection");
-
-
-//.WithReference(ordersdb);
-
-//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_DeleteMigratedUsers>(
-//        "xc-oc-migration-function-delete-migrated-oc-users")
-//    .WithReference(queues)
-//    .WithEnvironment("queueConnectionString", "queueConnection");
-
-//builder.AddAzureFunction<Projects.XC_OC_Migration_Function_FindDuplicateUsers>(
-//    "xc-oc-migration-function-find-duplicate-users")
-//    .WithReference(queues)
-//    .WithEnvironment("queueConnectionString", "queueConnection");
-
 builder.Build().Run();
